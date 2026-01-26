@@ -5,6 +5,8 @@
 #include <vector>
 #include <cctype>
 
+
+//TODO: put a if and a boolean around the REPL, so that we can read files and allow ./vertex filename.vx
 class variable{
   public:
     
@@ -12,7 +14,7 @@ class variable{
     std::string strValue;
     std::string type,name;
     variable(std::string type, int iVal, std::string strVal, std::string name) : strValue(strVal), intValue(iVal), name(name), type(type) {}
-};
+};i
 //TODO code works, in createInt function, detect variable name along with literal. good night. have a nice republic day. Gn.
 std::vector<std::string> keywords = {
   "int",
@@ -132,7 +134,7 @@ void interpret(std::string line, int lineNo){
   
 }
 
-int main(){
+int main(int argc, char* argv[]){
   std::string line;
   while(true){ 
     std::cout << "> ";
