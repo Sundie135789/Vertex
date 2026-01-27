@@ -7,6 +7,7 @@
 
 
 //TODO: put a if and a boolean around the REPL, so that we can read files and allow ./vertex filename.vx
+//TODO: line: 151 read from File.
 class variable{
   public:
     
@@ -14,7 +15,7 @@ class variable{
     std::string strValue;
     std::string type,name;
     variable(std::string type, int iVal, std::string strVal, std::string name) : strValue(strVal), intValue(iVal), name(name), type(type) {}
-};i
+};
 //TODO code works, in createInt function, detect variable name along with literal. good night. have a nice republic day. Gn.
 std::vector<std::string> keywords = {
   "int",
@@ -135,15 +136,22 @@ void interpret(std::string line, int lineNo){
 }
 
 int main(int argc, char* argv[]){
-  std::string line;
-  while(true){ 
-    std::cout << "> ";
-    std::getline(std::cin, line);
-    if(line == "ret"){
-      break;
+  bool repl = false;
+  if (argc == 1 || argc == 0) repl = true;
+  if(repl){
+    std::string line;
+    while(true){ 
+      std::cout << "> ";
+      std::getline(std::cin, line);
+      if(line == "ret"){
+        break;
+      }
+      interpret(line, lineNo);
     }
-    interpret(line, lineNo);
+  }else{
+    
   }
+  
   if(output == "") output = "No Output";
   std::cout << "Output: " << output;
   return 0;
