@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -63,6 +64,11 @@ void error(std::string str, int lineNo) {
 }
 void interpret(std::string line, int lineNo) {
   std::vector<std::string> tokens = tokenize(line);
+  for(int i=0; i<tokens.size();i++){
+    std::cout << tokens.at(i) << std::endl;
+  
+  }
+  return;
   if (tokens[tokens.size() - 1].back() != ';') {
     output += "Error at line " + std::to_string(lineNo) +
               " : Expected \';\' at the end of line\n";
@@ -81,7 +87,6 @@ int main(int argc, char *argv[]) {
   if (argc == 1 || argc == 0)
     repl = true;
   if (repl) {
-
     std::string line;
     while (true) {
       std::cout << "> ";
@@ -91,6 +96,7 @@ int main(int argc, char *argv[]) {
       }
       interpret(line, lineNo);
     }
+    return 0;
   } else {
     std::ifstream file(argv[1]);
     if (!file)
@@ -103,14 +109,13 @@ int main(int argc, char *argv[]) {
     std::string line;
     lineNo = 1;
     while (getline(file, line)) {
+      if (line.empty() && std::any_of(line.begin(),line.end(),[](char c){return c != ' ';})) continue;;
       interpret(line, lineNo);
       lineNo++;
       output += "Error: File extension must be \".vx\"";
     }
-
-    if (output == "")
-      output = "No Output";
-    std::cout << "Output: " << output;
-    return 0;
   }
+  if (output == "") output = "No Output";
+  std::cout << "Output: " << output << std::endl;
+  return 0;
 }
