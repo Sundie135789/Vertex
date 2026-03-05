@@ -4,6 +4,9 @@
 #include <vector>
 #include <cassert>
 #include "variable.hpp"
+//TODO: Refine error messages
+#define INT_MAX  1 << 16;
+#define INT_OUT (1 << 16) + 1;
 std::string output = "";
 std::vector<std::string> lex_line(std::string line){
   std::vector<std::string> tokens;
@@ -11,10 +14,11 @@ std::vector<std::string> lex_line(std::string line){
   int position = 0;
   while(position < line.size()){
     char c = line[position];
-    //int a = 10;
-    // position 4, token int
+    //int 22=25;
+    //position 4, token 
     if(std::isalpha(c)){
-      while(position < line.size() && std::isalpha(line[position])){
+      token = "";
+      while(position < line.size() && (std::isalnum(line[position] || line[position] == '_'))){
         token+= line[position];
         position++;
       }
@@ -29,18 +33,30 @@ std::vector<std::string> lex_line(std::string line){
         token += line[position];
         position ++;
       }
+      if(position < line.size() && line[position] == ';'){
+        token += ';';
+        position++;
+      }
       tokens.push_back(token);
     }else if(c == '=' || c == '+' || c == '-' || c == '*' || c == '/'){
+      if(token != ""){
+        tokens.push_back(token);
+        token = "";
+      }
    	  token += c;
       position++;
       tokens.push_back(token);	 
+      token = "";
     }
-    else if(c == ';'){ 
-      token+=c;
-      tokens.push_back(token);
-      break;
+    else{
+      position++ ;
     }
   }
+  /*std::cout << "\n\n\n";
+  for(int i=0; i<tokens.size();i++){
+    std::cout << tokens.at(i) << '\n';
+  }
+  std::cout << "\n\n\n";*/
   return tokens;
 }
 std::vector<variable> variables;
@@ -48,19 +64,62 @@ bool hasError = false;
 std::string fileName;
 std::string error;
 void createInt(std::vector<std::string> tokens){
-  if(tokens.size() <= 3){
+  /*if(tokens.size() <= 4){
     error += fileName + ": error: invalid syntax for integer variable creation.\n";
     hasError = true;
     return;
+  }*/
+  // Check if the variable name has atleast a single letter.
+  bool hasLetter = false;
+  for(int i=0;i<tokens[1].size();i++){
+    if(std::isalpha(tokens[1][i])){
+      hasLetter = true;
+      break;
+    }
   }
-  if(tokens[2] != "="){
-    error += fileName + ": error: could not find operator -> " + tokens[2];
+  if(hasLetter == false){
+    error += fileName + ": error: integer variable name must have atleast one alphabetical letter\n";
     hasError = true;
     return;
   }
-  variable tempVar(tokens[1], std::stoi(tokens[3]));
-  variables.push_back(tempVar);
-  std::cout << "Created int variable with name : " << tokens[1]<<" and value : "<< tokens[3];
+
+  // Handle creation + setting value.
+  if(tokens.size() == 4){
+    if(tokens[2] != "="){
+      error += fileName + ": error: could not find operator -> " + tokens[2] + "\n";
+      hasError = true;
+      return;
+    }
+    for(int i=0; i<tokens[3].size();i++){
+      if(std::isdigit(tokens[3][i]) == false){
+        error += fileName + ": error: cannot set integer variable's value to invalid literal\n";
+        hasError = true;
+        return;
+      }
+    }
+    //if just creating variable, then the checks for that.
+  }else if(tokens.size() != 2){
+    for(std::string s : tokens){
+      std::cout << s << '\n';
+    }
+    error += fileName + ": error: invalid syntax for creating integer variable\n"; 
+    hasError = true;
+    return;
+  }
+  // Example Statement: int a = 10;
+  //Before creating variable, check if such a variable already exists.
+  if(tokens.size() == 4)  tokens[3].pop_back();
+  int value = tokens.size() == 4 ? std::stoi(tokens[3]) : INT_OUT;
+  if(tokens.size() == 2) tokens[1].pop_back();
+  for(int i=0; i<variables.size();i++){
+    if(variables[i].type == "int" && variables[i].name == tokens[1]){
+      error += fileName + ": error: redefinition of integer variable -> " + variables[i].name + '\n';
+      hasError = true;
+      return;
+    }
+  }
+  variables.push_back(variable(tokens[1], value));
+
 }
 // tokens.size() == 4
 // 10;
