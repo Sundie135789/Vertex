@@ -4,9 +4,9 @@
 #include <vector>
 #include <cassert>
 #include "variable.hpp"
-//TODO: Refine error messages
-#define INT_MAX  1 << 16;
-#define INT_OUT (1 << 16) + 1;
+//TODO: Just do the input. at line around 150
+#define INT_MAX  1 << 16
+#define INT_OUT (1 << 16) + 1
 std::string output = "";
 std::vector<std::string> lex_line(std::string line){
   std::vector<std::string> tokens;
@@ -57,11 +57,11 @@ std::vector<std::string> lex_line(std::string line){
       position++ ;
     }
   }
-  std::cout << "\n\n\n";
+ /* std::cout << "\n\n\n";
   for(int i=0; i<tokens.size();i++){
     std::cout << tokens.at(i) << '\n';
   }
-  std::cout << "\n\n\n";
+  std::cout << "\n\n\n";*/
   return tokens;
 }
 std::vector<variable> variables;
@@ -70,7 +70,7 @@ std::string fileName;
 std::string error;
 void createInt(std::vector<std::string> tokens){
   /*if(tokens.size() <= 4){
-    error += fileName + ": error: invalid syntax for integer variable creation.\n";
+    error += fileName + ": Error: invalid syntax for integer variable creation.\n";
     hasError = true;
     return;
   }*/
@@ -83,7 +83,7 @@ void createInt(std::vector<std::string> tokens){
     }
   }
   if(hasLetter == false){
-    error += fileName + ": error: integer variable name must have atleast one alphabetical letter\n";
+    error += fileName + ": Error: Integer variable name must contain at least one letter\n";
     hasError = true;
     return;
   }
@@ -91,13 +91,13 @@ void createInt(std::vector<std::string> tokens){
   // Handle creation + setting value.
   if(tokens.size() == 4){
     if(tokens[2] != "="){
-      error += fileName + ": error: could not find operator -> " + tokens[2] + "\n";
+      error += fileName + ": Error: Unknown operator '" + tokens[2] + "'\n";
       hasError = true;
       return;
     }
     for(int i=0; i<tokens[3].size();i++){
       if(std::isdigit(tokens[3][i]) == false && tokens[3][i] != ';'){
-        error += fileName + ": error: cannot set integer variable's value to invalid literal\n";
+        error += fileName + ": Error: Invalid value for integer variable\n";
         hasError = true;
         return;
       }
@@ -107,18 +107,19 @@ void createInt(std::vector<std::string> tokens){
     for(std::string s : tokens){
       std::cout << s << '\n';
     }
-    error += fileName + ": error: invalid syntax for creating integer variable\n"; 
+    error += fileName + ": Error: Invalid syntax for integer declaration\n"; 
     hasError = true;
     return;
   }
   // Example Statement: int a = 10;
   //Before creating variable, check if such a variable already exists.
+  
   if(tokens.size() == 4)  tokens[3].pop_back();
-  int value = tokens.size() == 4 ? std::stoi(tokens[3]) : INT_OUT;
   if(tokens.size() == 2) tokens[1].pop_back();
+  int value = tokens.size() == 4 ? std::stoi(tokens[3]) : INT_OUT;
   for(int i=0; i<variables.size();i++){
     if(variables[i].type == "int" && variables[i].name == tokens[1]){
-      error += fileName + ": error: redefinition of integer variable -> " + variables[i].name + '\n';
+      error += fileName + ": Error: Redefinition of '" + variables[i].name + "'\n";
       hasError = true;
       return;
     }
@@ -136,11 +137,17 @@ void run_line(std::vector<std::string> tokens, int lineNo){
 
   //std::cout << "\n\n" << tokens[tokens.size() - 1][tokens[tokens.size()-1].size()-1] << "\n\n";
   if(tokens[tokens.size() - 1][tokens[tokens.size()-1].size()-1] != ';'){
-    error += fileName + ": error: expected ';' in line " + std::to_string(lineNo) + '\n';
+    error += fileName + ": Error: Expected ';' at line " + std::to_string(lineNo) + '\n';
     hasError = true;
   }
   if(tokens[0] == "int"){
     createInt(tokens);
+  }else if(true){
+
+  }
+  else{
+    error += fileName + ": Error: Unknown token at line " + std::to_string(lineNo) + " -> '" + tokens[0] + "'\n";
+    hasError = true;
   }
   /*for(int i=0; i<tokens.size();i++){
     assert(i < tokens.size());
@@ -148,17 +155,28 @@ void run_line(std::vector<std::string> tokens, int lineNo){
   }*/
 }
 int main(int argc, char** argv){
-  std::cout << "RUNNING";
+  if(argc == 1){
+    std::cout << "Error: Expected filename argument.\n";
+    return 1; 
+  }
+  if(argc > 2){
+    std::cout << "Error: Please enter only one file\n";
+    return 1;
+  }
   fileName = argv[1];
   std::string text;
   std::ifstream file(fileName);
-  if(!file) std::cout << "Could not open test.v";
+  if(!file) {
+    std::cout << "Error: Cannot open '" + fileName + ";\n";
+    return 1;
+  }
   int lineNo = 1;
   while(getline(file, text)){
     run_line(lex_line(text), lineNo);
     if(hasError)
     {
       output += error;
+      error ="";
       hasError = false;
     }
     lineNo++;

@@ -1,0 +1,24 @@
+[
+  {
+    "file": "main.cpp",
+    "arguments": [
+      "g++",
+      "main.cpp",
+      "-o",
+      "main"
+    ],
+    "directory": "/home/paaji/project/interpreter",
+    "output": "main"
+  },
+  {
+    "file": "variable.cpp",
+    "arguments": [
+      "g++",
+      "variable.cpp",
+      "-o",
+      "main"
+    ],
+    "directory": "/home/paaji/project/interpreter",
+    "output": "main"
+  }
+]
