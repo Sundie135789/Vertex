@@ -1,1 +1,3 @@
-int length = 10;
+int a;
+int b;
+int c;

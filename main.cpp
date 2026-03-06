@@ -11,6 +11,7 @@ std::string output = "";
 std::vector<std::string> lex_line(std::string line){
   std::vector<std::string> tokens;
   std::string token = "";
+  // int length = 10;
   int position = 0;
   while(position < line.size()){
     char c = line[position];
@@ -18,9 +19,13 @@ std::vector<std::string> lex_line(std::string line){
     //position 4, token 
     if(std::isalpha(c)){
       token = "";
-      while(position < line.size() && (std::isalnum(line[position] || line[position] == '_'))){
+      while(position < line.size() && (std::isalnum(line[position]) || line[position] == '_')){
         token+= line[position];
         position++;
+      }
+      if(position < line.size() && line[position] == ';'){
+        token+= ';';
+        position ++;
       }
       tokens.push_back(token);
       token = "";
@@ -52,11 +57,11 @@ std::vector<std::string> lex_line(std::string line){
       position++ ;
     }
   }
-  /*std::cout << "\n\n\n";
+  std::cout << "\n\n\n";
   for(int i=0; i<tokens.size();i++){
     std::cout << tokens.at(i) << '\n';
   }
-  std::cout << "\n\n\n";*/
+  std::cout << "\n\n\n";
   return tokens;
 }
 std::vector<variable> variables;
@@ -91,7 +96,7 @@ void createInt(std::vector<std::string> tokens){
       return;
     }
     for(int i=0; i<tokens[3].size();i++){
-      if(std::isdigit(tokens[3][i]) == false){
+      if(std::isdigit(tokens[3][i]) == false && tokens[3][i] != ';'){
         error += fileName + ": error: cannot set integer variable's value to invalid literal\n";
         hasError = true;
         return;
@@ -125,6 +130,9 @@ void createInt(std::vector<std::string> tokens){
 // 10;
 // 2
 void run_line(std::vector<std::string> tokens, int lineNo){
+  if(tokens.empty()){
+    return;
+  }
 
   //std::cout << "\n\n" << tokens[tokens.size() - 1][tokens[tokens.size()-1].size()-1] << "\n\n";
   if(tokens[tokens.size() - 1][tokens[tokens.size()-1].size()-1] != ';'){
@@ -140,6 +148,7 @@ void run_line(std::vector<std::string> tokens, int lineNo){
   }*/
 }
 int main(int argc, char** argv){
+  std::cout << "RUNNING";
   fileName = argv[1];
   std::string text;
   std::ifstream file(fileName);
