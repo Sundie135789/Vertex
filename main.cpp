@@ -4,10 +4,43 @@
 #include <vector>
 #include <cassert>
 #include "variable.hpp"
-//TODO: Just do the input. at line around 150
 #define INT_MAX  1 << 16
 #define INT_OUT (1 << 16) + 1
 std::string output = "";
+std::vector<variable> variables;
+variable* findVariable(std::string name, std::string type){
+  for(int i=0; i<variables.size();i++){
+    if(name == variables.at(i).name && type == variables.at(i).type){
+      return &variables.at(i);
+    }
+  }
+  return nullptr;
+}
+void takeInput(std::vector<std::string> tokens){
+  if(tokens.size() != 2){
+    error += fileName + ": Error: Invalid syntax for input\n";
+    hasError = true;
+    return;
+  }
+  tokens[2].pop_back();
+  variable* intvar = findVariable(tokens[2], "int");
+  variable* strvar = findVariable(tokens[2], "string");
+  if(intvar == nullptr && strvar == nullptr){
+    error += fileName + ": Error: Non-existent variable used in input\n";
+    hasError = true;
+    return;
+  }
+  if(intvar == nullptr){
+    std::string temp;
+    std::getline(std::cin, temp);
+    strvar->stringValue = temp;
+  }
+  if(strvar == nullptr){
+    std::string tempstr;
+    std::getline(std::cin, tempstr);
+    intvar->intvalue = std::stoi(tempstr);
+  }
+}
 std::vector<std::string> lex_line(std::string line){
   std::vector<std::string> tokens;
   std::string token = "";
@@ -64,11 +97,11 @@ std::vector<std::string> lex_line(std::string line){
   std::cout << "\n\n\n";*/
   return tokens;
 }
-std::vector<variable> variables;
 bool hasError = false;
 std::string fileName;
 std::string error;
 void createInt(std::vector<std::string> tokens){
+  int value = INT_OUT;
   /*if(tokens.size() <= 4){
     error += fileName + ": Error: invalid syntax for integer variable creation.\n";
     hasError = true;
@@ -95,11 +128,18 @@ void createInt(std::vector<std::string> tokens){
       hasError = true;
       return;
     }
+    tokens[3].pop_back();
     for(int i=0; i<tokens[3].size();i++){
-      if(std::isdigit(tokens[3][i]) == false && tokens[3][i] != ';'){
-        error += fileName + ": Error: Invalid value for integer variable\n";
-        hasError = true;
-        return;
+      if(std::isdigit(tokens[3][i]) == false && tokens[3][i] != ';' ){
+          variable* v = findVariable(tokens[3], "int");
+          if(v != nullptr){
+            value = v->intValue;
+          }
+          else{
+            error += fileName + ": Error: Invalid value for integer variable\n";
+            hasError = true;
+            return;
+          }
       }
     }
     //if just creating variable, then the checks for that.
@@ -114,9 +154,9 @@ void createInt(std::vector<std::string> tokens){
   // Example Statement: int a = 10;
   //Before creating variable, check if such a variable already exists.
   
-  if(tokens.size() == 4)  tokens[3].pop_back();
+//  if(tokens.size() == 4)  tokens[3].pop_back();
   if(tokens.size() == 2) tokens[1].pop_back();
-  int value = tokens.size() == 4 ? std::stoi(tokens[3]) : INT_OUT;
+  if(value != INT_OUT) value = tokens.size() == 4 ? std::stoi(tokens[3]) : INT_OUT;
   for(int i=0; i<variables.size();i++){
     if(variables[i].type == "int" && variables[i].name == tokens[1]){
       error += fileName + ": Error: Redefinition of '" + variables[i].name + "'\n";
@@ -142,8 +182,8 @@ void run_line(std::vector<std::string> tokens, int lineNo){
   }
   if(tokens[0] == "int"){
     createInt(tokens);
-  }else if(true){
-
+  }else if(tokens[0] == "input"){
+    takeInput(tokens);
   }
   else{
     error += fileName + ": Error: Unknown token at line " + std::to_string(lineNo) + " -> '" + tokens[0] + "'\n";
