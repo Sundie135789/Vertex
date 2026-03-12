@@ -1,4 +1,6 @@
-// TODO: line 261
+/*TODO 267 line
+ * check if only the first one is " and also if only last one is "
+ * */
 #include <fstream>
 #include <iostream>
 #include <cctype>
@@ -81,7 +83,7 @@ std::vector<std::string> lex_line(std::string line){
       }
       tokens.push_back(token);
       token = "";
-    }else if(std::isspace(c)){
+    }else if(c == ' '){
       //if(token != "") tokens[position] = token;
       position++;
     }else if(std::isdigit(c)){
@@ -110,6 +112,9 @@ std::vector<std::string> lex_line(std::string line){
       position++;
       tokens.push_back(token);	 
       token = "";
+      //string name = "abhay krishna is my best friend.";
+    }else if(c == '"'){
+      
     }
     else{
       position++ ;
@@ -255,10 +260,17 @@ void createString(std::vector<std::string> tokens){
     }
     tokens[3].pop_back();
     //string name = "mudit" tokens[3] has been popped back, so semicolon gone.
-    //Literal vs Variable checking is done inside loop, unlike int creation.
-    //Outside-loop checking is too complex for my feeble brain.
-    for(int i=0; i<tokens[3].size();i++){
-      //TODO: check if i=0 and it is ", OR if its a findVariable.
+    //Literal vs Variable checking is done outside loop, unlike int creation.
+    //Inside-loop checking is too complex for my feeble brain.
+    bool isLiteral = false;
+    if(tokens[3][0] == '"' && tokens[3][tokens[3].size()-1] == '"'){
+      isLiteral = true;
+    }
+    else if(tokens[3][0] == '"'){
+
+    }
+    if(isLiteral){
+
     }
   }
 }
