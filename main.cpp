@@ -6,6 +6,7 @@
 #define INT_MAX  1 << 16
 #define INT_OUT (1 << 16) + 1
 std::string output = "", error = "", fileName = "";
+  int lineNo = 1;
 bool hasError = false;
 std::vector<variable> variables;
 variable* findVariable(std::string name, std::string type){
@@ -42,7 +43,8 @@ void takeInput(std::vector<std::string> tokens){
       if(std::stoi(tempstr) > INT_MAX){
         error += fileName + ": Error: Integer variable set to a too large value\n";
         hasError = true;
-        return;
+        std::cout << error;
+        exit(1);
       }
       if(std::stoi(tempstr) < 0){
         error += fileName + ": Error: Signed integer set to negative value\n";
@@ -200,12 +202,42 @@ void createInt(std::vector<std::string> tokens){
 }
 // tokens.size() == 4
 // 10;
-// 2
+void print(std::vector<std::string> tokens){
+    if(tokens.size() != 2){
+      error += fileName + ": Error: Invalid syntax for print statement at line " + std::to_string(lineNo) + "\n";
+      hasError = true;
+      return;
+    }
+    // Check what we are printing
+    //For strings, dont check negation of being digit, check if quotation mark is found at i = 0. if found then it is a string literal. else if it is -
+    // Not a digit, then it is a integer literal.
+    bool isLiteral = true;
+    tokens[1].pop_back();
+    for(int i=0; i<tokens[1].size();i++){
+      if(!std::isdigit(tokens[1][i])){
+        isLiteral = false;
+        break;
+      }
+    }
+    // print 32
+    if(isLiteral){
+      std::cout << tokens[1];
+    }else{
+      variable* v = findVariable(tokens[1], "int");
+      if(v == nullptr){
+        error += fileName + ": Error: Could not find variable at line " + std::to_string(lineNo) + " -> '" + tokens[1] + "'\n";
+        hasError = true;
+        return;
+      }
+      std::cout << v->intValue;
+    }
+  }
+
 void run_line(std::vector<std::string> tokens, int lineNo){
   if(tokens.empty()){
     return;
   }
-
+  
   //std::cout << "\n\n" << tokens[tokens.size() - 1][tokens[tokens.size()-1].size()-1] << "\n\n";
   if(tokens[tokens.size() - 1][tokens[tokens.size()-1].size()-1] != ';'){
     error += fileName + ": Error: Expected ';' at line " + std::to_string(lineNo) + '\n';
@@ -215,6 +247,8 @@ void run_line(std::vector<std::string> tokens, int lineNo){
     createInt(tokens);
   }else if(tokens[0] == "input"){
     takeInput(tokens);
+  }else if(tokens[0] == "output"){
+    print(tokens);
   }
   else{
     error += fileName + ": Error: Unknown token at line " + std::to_string(lineNo) + " -> '" + tokens[0] + "'\n";
@@ -241,7 +275,6 @@ int main(int argc, char** argv){
     std::cout << "Error: Cannot open '" + fileName + ";\n";
     return 1;
   }
-  int lineNo = 1;
   while(getline(file, text)){
     run_line(lex_line(text), lineNo);
     if(hasError)
