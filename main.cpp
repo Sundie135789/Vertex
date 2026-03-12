@@ -2,11 +2,11 @@
 #include <iostream>
 #include <cctype>
 #include <vector>
-#include <cassert>
 #include "variable.hpp"
 #define INT_MAX  1 << 16
 #define INT_OUT (1 << 16) + 1
-std::string output = "";
+std::string output = "", error = "", fileName = "";
+bool hasError = false;
 std::vector<variable> variables;
 variable* findVariable(std::string name, std::string type){
   for(int i=0; i<variables.size();i++){
@@ -22,9 +22,9 @@ void takeInput(std::vector<std::string> tokens){
     hasError = true;
     return;
   }
-  tokens[2].pop_back();
-  variable* intvar = findVariable(tokens[2], "int");
-  variable* strvar = findVariable(tokens[2], "string");
+  tokens[1].pop_back(); // input num;
+  variable* intvar = findVariable(tokens[1], "int");
+  variable* strvar = findVariable(tokens[1], "string");
   if(intvar == nullptr && strvar == nullptr){
     error += fileName + ": Error: Non-existent variable used in input\n";
     hasError = true;
@@ -38,7 +38,23 @@ void takeInput(std::vector<std::string> tokens){
   if(strvar == nullptr){
     std::string tempstr;
     std::getline(std::cin, tempstr);
-    intvar->intvalue = std::stoi(tempstr);
+    try{
+      if(std::stoi(tempstr) > INT_MAX){
+        error += fileName + ": Error: Integer variable set to a too large value\n";
+        hasError = true;
+        return;
+      }
+      if(std::stoi(tempstr) < 0){
+        error += fileName + ": Error: Signed integer set to negative value\n";
+        hasError = true;
+        return;
+      }
+      intvar->intValue = std::stoi(tempstr);
+    }catch(std::invalid_argument){
+      error += fileName + ": Error: Invalid value entered for input of variable\n";
+      hasError = true;
+      return;
+    }
   }
 }
 std::vector<std::string> lex_line(std::string line){
@@ -78,8 +94,14 @@ std::vector<std::string> lex_line(std::string line){
       tokens.push_back(token);
     }else if(c == '=' || c == '+' || c == '-' || c == '*' || c == '/'){
       if(token != ""){
-        tokens.push_back(token);
-        token = "";
+        if(position < line.size() && std::isdigit(line[position+1])){
+          position++;
+          token += c;
+        }
+        else{
+          tokens.push_back(token);
+          token = "";
+        }
       }
    	  token += c;
       position++;
@@ -90,16 +112,13 @@ std::vector<std::string> lex_line(std::string line){
       position++ ;
     }
   }
- /* std::cout << "\n\n\n";
+  /*std::cout << "\n\n\n";
   for(int i=0; i<tokens.size();i++){
     std::cout << tokens.at(i) << '\n';
   }
   std::cout << "\n\n\n";*/
   return tokens;
 }
-bool hasError = false;
-std::string fileName;
-std::string error;
 void createInt(std::vector<std::string> tokens){
   int value = INT_OUT;
   /*if(tokens.size() <= 4){
@@ -129,6 +148,7 @@ void createInt(std::vector<std::string> tokens){
       return;
     }
     tokens[3].pop_back();
+    
     for(int i=0; i<tokens[3].size();i++){
       if(std::isdigit(tokens[3][i]) == false && tokens[3][i] != ';' ){
           variable* v = findVariable(tokens[3], "int");
@@ -141,6 +161,17 @@ void createInt(std::vector<std::string> tokens){
             return;
           }
       }
+    }
+    // check if int variable value is above INT_MAX or below 0.
+    if(std::stoi(tokens[3]) > INT_MAX){
+      error += fileName + ": Error: Integer variable set to a too large value\n";
+      hasError = true;
+      return;
+    }
+    if(std::stoi(tokens[3]) < 0){
+      error += fileName + ": Error: Signed integer variable set to negative value\n";
+      hasError = true;
+      return;
     }
     //if just creating variable, then the checks for that.
   }else if(tokens.size() != 2){
