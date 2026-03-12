@@ -1,3 +1,4 @@
+// TODO: line 261
 #include <fstream>
 #include <iostream>
 #include <cctype>
@@ -232,7 +233,35 @@ void print(std::vector<std::string> tokens){
       std::cout << v->intValue;
     }
   }
-
+void createString(std::vector<std::string> tokens){
+  std::string value = "";
+  bool hasLetter = false;
+  for(int i=0;i<tokens[1].size();i++){
+    if(std::isalpha(tokens[1][i])){
+      hasLetter = true;
+      break;
+    }
+  }
+  if(hasLetter == false){
+    error += fileName + ": Error: String variable name must contain at least one letter\n";
+    hasError = true;
+    return;
+  }
+  if(tokens.size() == 4){
+    if(tokens[2] != "="){
+      error += fileName + ": Error: Unknown operator '" + tokens[2] + "'\n";
+      hasError = true;
+      return;
+    }
+    tokens[3].pop_back();
+    //string name = "mudit" tokens[3] has been popped back, so semicolon gone.
+    //Literal vs Variable checking is done inside loop, unlike int creation.
+    //Outside-loop checking is too complex for my feeble brain.
+    for(int i=0; i<tokens[3].size();i++){
+      //TODO: check if i=0 and it is ", OR if its a findVariable.
+    }
+  }
+}
 void run_line(std::vector<std::string> tokens, int lineNo){
   if(tokens.empty()){
     return;
@@ -245,6 +274,8 @@ void run_line(std::vector<std::string> tokens, int lineNo){
   }
   if(tokens[0] == "int"){
     createInt(tokens);
+  }else if(tokens[0] == "string"){
+    createString(tokens);
   }else if(tokens[0] == "input"){
     takeInput(tokens);
   }else if(tokens[0] == "output"){
@@ -254,7 +285,7 @@ void run_line(std::vector<std::string> tokens, int lineNo){
     error += fileName + ": Error: Unknown token at line " + std::to_string(lineNo) + " -> '" + tokens[0] + "'\n";
     hasError = true;
   }
-  /*for(int i=0; i<tokens.size();i++){
+    /*for(int i=0; i<tokens.size();i++){
     assert(i < tokens.size());
     std::cout << "Token Number " << (i+1) << ": " << tokens[i] << '\n';
   }*/
