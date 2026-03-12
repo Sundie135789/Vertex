@@ -1,5 +1,4 @@
-/*TODO 267 line
- * check if only the first one is " and also if only last one is "
+/*TODO 281 line
  * */
 #include <fstream>
 #include <iostream>
@@ -266,10 +265,18 @@ void createString(std::vector<std::string> tokens){
     if(tokens[3][0] == '"' && tokens[3][tokens[3].size()-1] == '"'){
       isLiteral = true;
     }
-    else if(tokens[3][0] == '"'){
-
+    else if(tokens[3][tokens[3].size()-1] == '"' || tokens[3][0] == '"'){
+      error += fileName + ": Missing terminating '\"' at line " + std::to_string(lineNo) + '\n';
+      hasError = true;
+      return;
     }
     if(isLiteral){
+      //Handle string literal. string a = "mudit and arvind. best friends forever.".  string a = "hello"
+      tokens[3].erase(0, 1);
+      tokens[3].pop_back();
+      value = tokens[3];
+    }else{
+      //Handle string variable. string a = str;
 
     }
   }
