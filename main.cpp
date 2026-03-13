@@ -1,5 +1,3 @@
-/*TODO 281 line
- * */
 #include <fstream>
 #include <iostream>
 #include <cctype>
@@ -7,6 +5,7 @@
 #include "variable.hpp"
 #define INT_MAX  1 << 16
 #define INT_OUT (1 << 16) + 1
+//TODO: refine createInt using findVariable.
 std::string output = "", error = "", fileName = "";
   int lineNo = 1;
 bool hasError = false;
@@ -67,6 +66,7 @@ std::vector<std::string> lex_line(std::string line){
   // int length = 10;
   int position = 0;
   while(position < line.size()){
+    std::cout << position << '\n';
     char c = line[position];
     //int 22=25;
     //position 4, token 
@@ -83,6 +83,7 @@ std::vector<std::string> lex_line(std::string line){
       tokens.push_back(token);
       token = "";
     }else if(c == ' '){
+      // string a = "hello";
       //if(token != "") tokens[position] = token;
       position++;
     }else if(std::isdigit(c)){
@@ -113,17 +114,21 @@ std::vector<std::string> lex_line(std::string line){
       token = "";
       //string name = "abhay krishna is my best friend.";
     }else if(c == '"'){
-      
+      token += c;
+      while(position < line.length() && line[position] != '"'){
+        position++;
+
+      }
     }
     else{
       position++ ;
     }
   }
-  /*std::cout << "\n\n\n";
+  std::cout << "\n\n\n";
   for(int i=0; i<tokens.size();i++){
     std::cout << tokens.at(i) << '\n';
   }
-  std::cout << "\n\n\n";*/
+  std::cout << "\n\n\n";
   return tokens;
 }
 void createInt(std::vector<std::string> tokens){
@@ -171,7 +176,7 @@ void createInt(std::vector<std::string> tokens){
     }
     // check if int variable value is above INT_MAX or below 0.
     if(std::stoi(tokens[3]) > INT_MAX){
-      error += fileName + ": Error: Integer variable set to a too large value\n";
+     error += fileName + ": Error: Integer variable set to a too large value\n";
       hasError = true;
       return;
     }
@@ -202,6 +207,7 @@ void createInt(std::vector<std::string> tokens){
       return;
     }
   }
+    
   variables.push_back(variable(tokens[1], value));
 
 }
@@ -251,8 +257,8 @@ void createString(std::vector<std::string> tokens){
     hasError = true;
     return;
   }
-  if(tokens.size() == 4){
-    if(tokens[2] != "="){
+  if(tokens.size() == 4) {
+    if(tokens[2] != "=") {
       error += fileName + ": Error: Unknown operator '" + tokens[2] + "'\n";
       hasError = true;
       return;
@@ -277,10 +283,20 @@ void createString(std::vector<std::string> tokens){
       value = tokens[3];
     }else{
       //Handle string variable. string a = str;
-
+      
     }
-  }
+    //if(tokens.size() == 2)tokens[1].pop_back();
+    // check if it already exists
+    variable* v = findVariable(tokens[1], "string");
+    if(v != nullptr){
+      error += fileName + ": Error redefinition of '" + v->name + "'\n";
+      hasError = true;
+      return;
+    }
+    variables.push_back(variable(tokens[1], "string"));
+    }
 }
+
 void run_line(std::vector<std::string> tokens, int lineNo){
   if(tokens.empty()){
     return;

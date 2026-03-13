@@ -1,3 +1,1 @@
-int num;
-input num;
-output 32;
+string name = "hello";
