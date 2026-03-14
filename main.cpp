@@ -5,7 +5,6 @@
 #include "variable.hpp"
 #define INT_MAX  1 << 16
 #define INT_OUT (1 << 16) + 1
-//TODO: refine createInt using findVariable.
 std::string output = "", error = "", fileName = "";
   int lineNo = 1;
 bool hasError = false;
@@ -66,7 +65,6 @@ std::vector<std::string> lex_line(std::string line){
   // int length = 10;
   int position = 0;
   while(position < line.size()){
-    std::cout << position << '\n';
     char c = line[position];
     //int 22=25;
     //position 4, token 
@@ -115,20 +113,27 @@ std::vector<std::string> lex_line(std::string line){
       //string name = "abhay krishna is my best friend.";
     }else if(c == '"'){
       token += c;
+      position++;
       while(position < line.length() && line[position] != '"'){
+        //std::cout << "Z\n" ;
+        token += line[position];
         position++;
-
       }
+      token += line[position];
+      position++;
+      if(line[position] == ';') token += ';';
+      tokens.push_back(token);
+      token = "";
     }
     else{
       position++ ;
     }
   }
-  std::cout << "\n\n\n";
+  /*std::cout << "\n\n\n";
   for(int i=0; i<tokens.size();i++){
     std::cout << tokens.at(i) << '\n';
   }
-  std::cout << "\n\n\n";
+  std::cout << "\n\n\n";*/
   return tokens;
 }
 void createInt(std::vector<std::string> tokens){
@@ -139,9 +144,10 @@ void createInt(std::vector<std::string> tokens){
     return;
   }*/
   // Check if the variable name has atleast a single letter.
+  // int hello = 32;
   bool hasLetter = false;
   for(int i=0;i<tokens[1].size();i++){
-    if(std::isalpha(tokens[1][i])){
+   if(std::isalpha(tokens[1][i])){
       hasLetter = true;
       break;
     }
@@ -153,6 +159,7 @@ void createInt(std::vector<std::string> tokens){
   }
 
   // Handle creation + setting value.
+  // int hello = 32
   if(tokens.size() == 4){
     if(tokens[2] != "="){
       error += fileName + ": Error: Unknown operator '" + tokens[2] + "'\n";
@@ -168,13 +175,14 @@ void createInt(std::vector<std::string> tokens){
             value = v->intValue;
           }
           else{
-            error += fileName + ": Error: Invalid value for integer variable\n";
+            error += fileName + ": Error: Could not find ' " +  tokens[3] +"' for integer variable\n";
             hasError = true;
             return;
           }
       }
     }
     // check if int variable value is above INT_MAX or below 0.
+  // int hello = 32
     if(std::stoi(tokens[3]) > INT_MAX){
      error += fileName + ": Error: Integer variable set to a too large value\n";
       hasError = true;
@@ -198,8 +206,9 @@ void createInt(std::vector<std::string> tokens){
   //Before creating variable, check if such a variable already exists.
   
 //  if(tokens.size() == 4)  tokens[3].pop_back();
+//  int hello = 32
   if(tokens.size() == 2) tokens[1].pop_back();
-  if(value != INT_OUT) value = tokens.size() == 4 ? std::stoi(tokens[3]) : INT_OUT;
+  if(value == INT_OUT) value = tokens.size() == 4 ? std::stoi(tokens[3]) : INT_OUT;
   for(int i=0; i<variables.size();i++){
     if(variables[i].type == "int" && variables[i].name == tokens[1]){
       error += fileName + ": Error: Redefinition of '" + variables[i].name + "'\n";
@@ -207,43 +216,46 @@ void createInt(std::vector<std::string> tokens){
       return;
     }
   }
-    
   variables.push_back(variable(tokens[1], value));
 
 }
 // tokens.size() == 4
 // 10;
 void print(std::vector<std::string> tokens){
-    if(tokens.size() != 2){
-      error += fileName + ": Error: Invalid syntax for print statement at line " + std::to_string(lineNo) + "\n";
-      hasError = true;
-      return;
-    }
-    // Check what we are printing
-    //For strings, dont check negation of being digit, check if quotation mark is found at i = 0. if found then it is a string literal. else if it is -
-    // Not a digit, then it is a integer literal.
-    bool isLiteral = true;
+  // print "You entered: "
+  if(tokens.size() != 2){
+    error += fileName + ": Error: Invalid syntax for print statement at line " + std::to_string(lineNo) + "\n";
+    hasError = true;
+    return;
+  }
+  // Check what we are printing
+  // first check string literal.
+  tokens[1].pop_back();
+  variable* v1 = findVariable(tokens[1], "string");
+  if(tokens[1][0] == '"' && tokens[1][tokens[1].size()-1] == '"'){
+    tokens[1].erase(0, 1);
     tokens[1].pop_back();
-    for(int i=0; i<tokens[1].size();i++){
-      if(!std::isdigit(tokens[1][i])){
-        isLiteral = false;
-        break;
-      }
-    }
-    // print 32
-    if(isLiteral){
-      std::cout << tokens[1];
-    }else{
-      variable* v = findVariable(tokens[1], "int");
-      if(v == nullptr){
-        error += fileName + ": Error: Could not find variable at line " + std::to_string(lineNo) + " -> '" + tokens[1] + "'\n";
-        hasError = true;
-        return;
-      }
-      std::cout << v->intValue;
+    std::cout << tokens[1];
+  }
+  //Now check for string variable
+  else if(v1 != nullptr){
+    std::cout << v1->stringValue;
+  }
+  // Now check for Integer literal.
+  bool isIntLiteral = true;
+  for(char c : tokens[1]){
+    if(!std::isdigit(c)){
+      isIntLiteral = false;
+      break;
     }
   }
+  // if is a int literal, print it after doing std::stoi.
+  if(isIntLiteral){
+
+  }
+}
 void createString(std::vector<std::string> tokens){
+  //string name = 3;
   std::string value = "";
   bool hasLetter = false;
   for(int i=0;i<tokens[1].size();i++){
@@ -267,6 +279,10 @@ void createString(std::vector<std::string> tokens){
     //string name = "mudit" tokens[3] has been popped back, so semicolon gone.
     //Literal vs Variable checking is done outside loop, unlike int creation.
     //Inside-loop checking is too complex for my feeble brain.
+  //string name = 3
+  //string name = 3
+  // int 
+  //string str = hello
     bool isLiteral = false;
     if(tokens[3][0] == '"' && tokens[3][tokens[3].size()-1] == '"'){
       isLiteral = true;
@@ -278,12 +294,32 @@ void createString(std::vector<std::string> tokens){
     }
     if(isLiteral){
       //Handle string literal. string a = "mudit and arvind. best friends forever.".  string a = "hello"
+      //Check if it is fully a number. If it is then error.
+      //
       tokens[3].erase(0, 1);
       tokens[3].pop_back();
       value = tokens[3];
     }else{
       //Handle string variable. string a = str;
-      
+      bool is_fully_number = true;
+      for(char c : tokens[3]){
+        if(!std::isdigit(c)){
+          is_fully_number = !is_fully_number;
+          break;
+        }
+      }
+      if(is_fully_number){
+        error += fileName + ": Cannot set string variable to integer variable\n"; 
+        hasError = true;
+        return;
+      }
+      variable* temp = findVariable(tokens[3], "string");
+      if(temp == nullptr){
+        error += fileName + ": Error: Could not find '" +  tokens[3] +"' for string variable\n";
+        hasError = true;
+        return;
+      }
+      value = temp->stringValue;
     }
     //if(tokens.size() == 2)tokens[1].pop_back();
     // check if it already exists
